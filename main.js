@@ -63,7 +63,6 @@ try {
         message.reply("**Fixed message with embed:\n**" + newmsg + "\n" + "***To do tiktok embeds tiktok.com in your message with tfxktok.com \nYou can type s/e/fx on desktop to edit your previous sent message to include the embed***");
       }
     }
-    throw (error)
   } 
 
   catch (error) 
