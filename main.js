@@ -17,6 +17,9 @@ client.on("ready", () => {
 
 let botID = process.env.CLIENTID
 client.on("messageCreate", (message) =>{
+
+//Try catch statement is to auto-rstart bot if any errors occur
+try {
   if (message.content.includes("https://www.x.com") || message.content.includes("https://x.com"))
     {
 
@@ -60,7 +63,14 @@ client.on("messageCreate", (message) =>{
         message.reply("**Fixed message with embed:\n**" + newmsg + "\n" + "***To do tiktok embeds tiktok.com in your message with tfxktok.com \nYou can type s/e/fx on desktop to edit your previous sent message to include the embed***");
       }
     }
+    throw (error)
+  } 
 
+  catch (error) 
+  {
+    console.log("Fatal error detected1 Restarting bot!")
+    client.login(process.env.TOKEN)
+  }
 })
 
 //Bot token for login
