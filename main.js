@@ -1,5 +1,6 @@
 const Discord = require("discord.js")
 const {GatewayIntentBits} = require ("discord.js")
+const { indexOf, extendWith, forEach } = require("lodash")
 require("dotenv").config()
 
 const client = new Discord.Client({
@@ -30,32 +31,62 @@ try {
   else
   {
     let msg = message.content
+    //Uses Regex to ensure https:// and http:// are lowercase for proper embeds
+    msg = msg.replaceAll(/https/gi, "https") 
+    msg = msg.replaceAll(/http/gi, "http") 
 
-    //Sets all chars to lowercase to easily check if message has a link
-    let lowerMsg = message.content.toLowerCase()
-
-    if(lowerMsg.includes("https://" ) && lowerMsg.includes(".com"))
+    if(msg.includes("https://twitter.com" ) || msg.includes("https://x.com") || msg.includes("https://tiktok.com") || msg.includes("https://www.x.com") || msg.includes("https://www.twitter.com") || msg.includes("https://www.tiktok.com") || msg.includes("http://twitter.com" ) || msg.includes("http://x.com") || msg.includes("http://tiktok.com") || msg.includes("http://www.x.com") || msg.includes("http://www.twitter.com") || msg.includes("http://www.tiktok.com"))
     {
 
-      //Calls function to collect alll twitter, x, and tiktok links
-      let returnedLinks = (fixLinks(msg))
+      ////console.log("The message with replaced links is: " + msg)
+      
+      //Now the links are going to be isolated from the message so only the embedded links are in the reply
+      var msg2 = msg
+      var startLink
+      var endLink
+      var newmsg = ""
+      ////console.log("msg2 is: " + msg2)
+      ////console.log("msg2 length is: " + msg2.length)
 
-      //If no matching links are found, do nothing
-      if ((returnedLinks == 0) || (returnedLinks == undefined) || (returnedLinks == null) || (returnedLinks == "") || (returnedLinks == " "))
+      for (i = 0; i < msg2.length; i++)
       {
-        return
-      }
 
-      else
-      {
-      //Modifies all relevant links to include embeds and reply to original message
-      let fixedmsg = returnedLinks.toString()
-      fixedmsg = fixedmsg.replace(/twitter.com/gi, "fxtwitter.com")
-      fixedmsg = fixedmsg.replace(/x.com/gi, "fixupx.com")
-      fixedmsg = fixedmsg.replace(/tiktok.com/gi, "tfxktok.com")
-      message.reply("**Fixed embeds in message:\n**" + fixedmsg + "\n" + "***To do twitter embeds replace x.com and twitter.com in your message with fixupx.com or fxtwitter.com respectively\nTo do tiktok embeds replace tiktok.com in your message with tfxktok.com \nHint: You can type s/e/fx on desktop to edit your previous sent message to include the TikTok embed***");}
-      }
+          startLink = msg2.indexOf("http", i)
 
+          if (startLink == -1)
+          {
+            //console.log("No link characters detected!")
+            break
+          }
+          //console.log("This is the start of the link: " + startLink)
+  
+          endLink = msg2.indexOf(" ", (i + 1))
+          //console.log("This is the end of the link: " + endLink)
+          
+          linkToPush = msg2.slice(startLink, endLink)
+          //console.log("The detected link is: " + linkToPush)
+          i += linkToPush.length
+  
+          //console.log("Current count is: " + i)
+  
+          if(linkToPush.includes("https://twitter.com" ) || linkToPush.includes("https://x.com") || linkToPush.includes("https://tiktok.com") || linkToPush.includes("https://www.x.com") || linkToPush.includes("https://www.twitter.com") || linkToPush.includes("https://www.tiktok.com") || linkToPush.includes("http://twitter.com" ) || linkToPush.includes("http://x.com") || linkToPush.includes("http://tiktok.com") || linkToPush.includes("http://www.x.com") || linkToPush.includes("http://www.twitter.com") || linkToPush.includes("http://www.tiktok.com"))
+          {
+            //console.log("Pushing link to newmsg!")
+            newmsg += " " + linkToPush
+            //console.log("Current newmsg is: " + newmsg)
+          }
+        }
+        newmsg = newmsg.trim()
+      //console.log("The final newmsg is: " + newmsg)
+      
+      //Edits all twitter, x, and tiktok links with their respective embeds
+      //See: https://regex101.com/
+      //Note that embeds that are already fixed are not included in the reply
+      newmsg = newmsg.replaceAll(/x.com/gi, "fixupx.com")              
+      newmsg = newmsg.replaceAll(/twitter.com/gi, "fxtwitter.com")              
+      newmsg = newmsg.replaceAll(/tiktok.com/gi, "tfxktok.com") 
+      message.reply(":arrow_down: **Fixed embeds below** :arrow_down: \n**Hint:** *Type fxtwitter.com or fixupx.com to embed Twitter links. Type tfxktok.com to embed Tiktoks.*\n" + newmsg)
+    }
     else 
     {
       return
@@ -71,73 +102,6 @@ catch (error)
   client.login(process.env.TOKEN)
 }
 })
-
-//Function to isolate each links and modify them to include embeds.
-function fixLinks(newmsg)
-{
-  //Another lowercase instance of the message. This is for comparision within the function.
-  let lowerMsg2 = newmsg.toLowerCase()
-  
-  //Array decleration. All links with fixable embeds are pushed here
-  const linksToFix = []
-
-  //For loop going through string to see if a link is detected
-  for (j = 0; j < newmsg.length + 1; j++)
-  {
-    //Gets the base link from https:// and the .com indices
-    //+3 is added to .com as location is taken from start of substring
-    linkStart = lowerMsg2.indexOf("https://")
-    dotComLocation = lowerMsg2.indexOf(".com")
-    dotComLocation += 4
-            
-    //Finds full link after the .com
-    for (i = dotComLocation; i < newmsg.length + 1; i++)
-      {
-        if ((newmsg.charAt(i) == null) || (newmsg.charAt(i) == undefined) || (newmsg.charAt(i) == "") || (newmsg.charAt(i) == " "))
-        {
-          linkEnd = i
-          break
-        }
-      }
-      
-    //Checks if the link is a Twitter, X, or Tiktok link
-    testLink = newmsg.slice(linkStart, linkEnd + 1)
-    testLinkLower = testLink.toLowerCase()
-    if(testLinkLower.includes("twitter.com") || testLinkLower.includes("x.com") || testLinkLower.includes("tiktok.com"))
-    {
-
-      //vxtwitter.com is also a Twitter embed fix, if it's caught because of the character overlap with twitter.com, it is skipped
-      if(testLinkLower.includes("vxtwitter.com"))
-      {
-        j += testLink.length
-        return
-      }
-
-      if(testLinkLower.includes("fixupx.com"))
-      {
-        j += testLink.length
-        return
-      }
-
-      else
-      {    
-        //Pushes link to array, removes link from newmsg and resets loop count to search for next instance of a link
-        linksToFix.push(testLink);
-        newmsg = newmsg.replace(testLink, "")
-        newmsg = newmsg.trim()
-        j = 0
-      }
-    }
-
-    else
-    {
-      j += testLink.length
-    }
-  }    
-
-  //Links are sent back to main body where they will be edited and posted
-  return linksToFix
-}
 
 //Bot token for login
 client.login(process.env.TOKEN)
